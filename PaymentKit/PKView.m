@@ -84,13 +84,17 @@
 	
 	// We shouldn't need to set the font and textColor attributes, but a bug exists in 7.0 (fixed in 7.1/)
 	
-	NSArray *textFields = @[_cardNumberField, _cardExpiryField, _cardCVCField, _cardLastFourField];
-    for (PKTextField *textField in textFields) {
-		textField.defaultTextAttributes = _defaultTextAttributes;
-		textField.font = _defaultTextAttributes[NSFontAttributeName];
-		textField.textColor = _defaultTextAttributes[NSForegroundColorAttributeName];
-		textField.textAlignment = NSTextAlignmentLeft;
-    }
+    if (_cardNumberField && _cardExpiryField && _cardLastFourField && _cardCVCField) {
+        NSArray *textFields = @[_cardNumberField, _cardExpiryField, _cardCVCField, _cardLastFourField];
+        for (PKTextField *textField in textFields) {
+            if ([textField respondsToSelector:@selector(defaultTextAttributes)]) {
+                textField.defaultTextAttributes = _defaultTextAttributes;
+            }
+            textField.font = _defaultTextAttributes[NSFontAttributeName];
+            textField.textColor = _defaultTextAttributes[NSForegroundColorAttributeName];
+            textField.textAlignment = NSTextAlignmentLeft;
+        }
+    }	
 	
 	_cardExpiryField.textAlignment = NSTextAlignmentCenter;
 	_cardCVCField.textAlignment = NSTextAlignmentCenter;
@@ -140,8 +144,12 @@
     self.innerView.clipsToBounds = YES;
 	
 	_cardLastFourField = [UITextField new];
-	_cardLastFourField.defaultTextAttributes = _defaultTextAttributes;
+    if ([_cardLastFourField respondsToSelector:@selector(defaultTextAttributes)]) {
+        _cardLastFourField.defaultTextAttributes = _defaultTextAttributes;
+    }
 	_cardLastFourField.backgroundColor = self.backgroundColor;
+    _cardLastFourField.delegate = self;
+    _cardLastFourField.keyboardType = UIKeyboardTypeNumberPad;
 	
     [self setupCardNumberField];
     [self setupCardExpiryField];
@@ -172,7 +180,9 @@
 	textField.delegate = self;
     textField.placeholder = placeholder;
     textField.keyboardType = UIKeyboardTypeNumberPad;
-    textField.defaultTextAttributes = _defaultTextAttributes;
+    if ([textField respondsToSelector:@selector(defaultTextAttributes)]) {
+        textField.defaultTextAttributes = _defaultTextAttributes;
+    }
 	textField.layer.masksToBounds = NO;
 	
 	return textField;
@@ -242,26 +252,52 @@
 	
 	NSDictionary *attributes = self.defaultTextAttributes;
 	
-	CGSize lastGroupSize, cvcSize, cardNumberSize;
+	CGSize lastGroupSize, cvcSize, cardNumberSize, expirySize;
 	
-	if (self.cardNumber.cardType == PKCardTypeAmex) {
-		cardNumberSize = [@"1234 567890 12345" sizeWithAttributes:attributes];
-		lastGroupSize = [@"00000" sizeWithAttributes:attributes];
-		cvcSize = [@"0000" sizeWithAttributes:attributes];
-	}
-	else {
-		if (self.cardNumber.cardType == PKCardTypeDinersClub) {
-			cardNumberSize = [@"1234 567890 1234" sizeWithAttributes:attributes];
-		}
-		else {
-			cardNumberSize = [_cardNumberField.placeholder sizeWithAttributes:attributes];
-		}
-		
-		lastGroupSize = [@"0000" sizeWithAttributes:attributes];
-		cvcSize = [_cardCVCField.placeholder sizeWithAttributes:attributes];
-	}
+    // Calculate size for iOS7
+    if ([@"" respondsToSelector:@selector(sizeWithAttributes:)]) {
+        if (self.cardNumber.cardType == PKCardTypeAmex) {
+            cardNumberSize = [@"1234 567890 12345" sizeWithAttributes:attributes];
+            lastGroupSize = [@"00000" sizeWithAttributes:attributes];
+            cvcSize = [@"0000" sizeWithAttributes:attributes];
+        }
+        else {
+            if (self.cardNumber.cardType == PKCardTypeDinersClub) {
+                cardNumberSize = [@"1234 567890 1234" sizeWithAttributes:attributes];
+            }
+            else {
+                cardNumberSize = [_cardNumberField.placeholder sizeWithAttributes:attributes];
+            }
+            
+            lastGroupSize = [@"0000" sizeWithAttributes:attributes];
+            cvcSize = [_cardCVCField.placeholder sizeWithAttributes:attributes];
+        }
+        
+        expirySize = [_cardExpiryField.placeholder sizeWithAttributes:attributes];
+    }
+    
+    // Calculate size for iOS6
+    else {
+        if (self.cardNumber.cardType == PKCardTypeAmex) {
+            cardNumberSize = [@"1234 567890 12345" sizeWithFont:self.font];
+            lastGroupSize = [@"00000" sizeWithFont:self.font];
+            cvcSize = [@"0000" sizeWithFont:self.font];
+        }
+        else {
+            if (self.cardNumber.cardType == PKCardTypeDinersClub) {
+                cardNumberSize = [@"1234 567890 1234" sizeWithFont:self.font];
+            }
+            else {
+                cardNumberSize = [_cardNumberField.placeholder sizeWithFont:self.font];
+            }
+            
+            lastGroupSize = [@"0000" sizeWithFont:self.font];
+            cvcSize = [_cardCVCField.placeholder sizeWithFont:self.font];
+        }
+        
+        expirySize = [_cardExpiryField.placeholder sizeWithFont:self.font];
+    }
 	
-	CGSize expirySize = [_cardExpiryField.placeholder sizeWithAttributes:attributes];
 	
 	CGFloat textFieldY = (self.frame.size.height - lastGroupSize.height) / 2.0;
 	
@@ -512,8 +548,9 @@
         [self setPlaceholderToCardType];
     }
     
-    if ([textField isEqual:_cardNumberField] && !isInitialState) {
+    if ([textField isEqual:_cardLastFourField] && !isInitialState) {
         [self stateCardNumber];
+        [_cardNumberField becomeFirstResponder];
     }
 }
 
