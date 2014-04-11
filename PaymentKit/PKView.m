@@ -586,6 +586,7 @@
     PKCardNumber *cardNumber = [PKCardNumber cardNumberWithString:resultString];
     
     if (![cardNumber isPartiallyValid]) {
+        [self stateMeta];
         return NO;
 	}
     
