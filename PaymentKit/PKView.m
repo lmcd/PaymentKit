@@ -19,7 +19,6 @@
     BOOL isValidState;
 }
 
-- (void)setup;
 - (void)setupPlaceholderView;
 - (void)setupCardNumberField;
 - (void)setupCardExpiryField;
@@ -126,7 +125,9 @@
 
 - (void)setup
 {
-	self.imageStyle = PKViewImageStyleNormal;
+  if (self.imageStyle == PKViewImageStyleNone) {
+    self.imageStyle = PKViewImageStyleNormal;
+  }
 	self.borderStyle = UITextBorderStyleRoundedRect;
 	self.layer.masksToBounds = YES;
 	self.backgroundColor = [UIColor whiteColor];

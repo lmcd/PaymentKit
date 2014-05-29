@@ -17,14 +17,15 @@
 @class PKView, PKTextField;
 
 typedef enum {
-    PKViewStateCardNumber,
+  PKViewStateCardNumber,
 	PKViewStateExpiry,
 	PKViewStateCVC
 } PKViewState;
 
 typedef enum {
+  PKViewImageStyleNone,
 	PKViewImageStyleNormal,
-    PKViewImageStyleOutline
+  PKViewImageStyleOutline
 } PKViewImageStyle;
 
 @protocol PKViewDelegate <NSObject>
@@ -34,6 +35,8 @@ typedef enum {
 @end
 
 @interface PKView : UIView
+
+- (void)setup;
 
 - (BOOL)isValid;
 
