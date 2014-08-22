@@ -140,6 +140,7 @@
     self.innerView.clipsToBounds = YES;
 	
 	_cardLastFourField = [UITextField new];
+    _cardLastFourField.delegate = self;
 	_cardLastFourField.defaultTextAttributes = _defaultTextAttributes;
 	_cardLastFourField.backgroundColor = self.backgroundColor;
 	
@@ -504,6 +505,14 @@
 
 // Delegates
 
+- (BOOL)textFieldShouldBeginEditing:(UITextField *)textField {
+    if (textField == _cardLastFourField) {
+        [self stateCardNumber];
+        return NO;
+    }
+    return YES;
+}
+
 - (void)textFieldDidBeginEditing:(UITextField *)textField
 {
     if ([textField isEqual:_cardCVCField]) {
@@ -655,11 +664,33 @@
 - (void)textFieldIsInvalid:(UITextField *)textField withErrors:(BOOL)errors {
     if (errors) {
         textField.textColor = kPKRedColor;
+        [self shakeView:textField];
     } else {
         textField.textColor = _defaultTextAttributes[NSForegroundColorAttributeName];;
     }
 	
     [self checkValid];
+}
+
+- (void)shakeView:(UIView *)view {
+    [self shakeView:view initialDirection:1 initialShakeCount:0];
+}
+
+- (void)shakeView:(UIView *)view initialDirection:(NSInteger)direction initialShakeCount:(NSInteger)shakeCount {
+    typeof(self) __weak weakSelf = self;
+    __block NSInteger _direction = direction;
+    __block NSInteger _shakeCount = shakeCount;
+    [UIView animateWithDuration:0.05 delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+        view.transform = CGAffineTransformMakeTranslation(5 * direction, 0);
+    } completion:^(BOOL finished) {
+        if (shakeCount >= 5) {
+            view.transform = CGAffineTransformIdentity;
+        } else {
+            _shakeCount += 1;
+            _direction *= -1;
+            [weakSelf shakeView:view initialDirection:_direction initialShakeCount:_shakeCount];
+        }
+    }];
 }
 
 #pragma mark -
