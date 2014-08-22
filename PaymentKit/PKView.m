@@ -140,6 +140,7 @@
     self.innerView.clipsToBounds = YES;
 	
 	_cardLastFourField = [UITextField new];
+    _cardLastFourField.delegate = self;
 	_cardLastFourField.defaultTextAttributes = _defaultTextAttributes;
 	_cardLastFourField.backgroundColor = self.backgroundColor;
 	
@@ -503,6 +504,14 @@
 }
 
 // Delegates
+
+- (BOOL)textFieldShouldBeginEditing:(UITextField *)textField {
+    if (textField == _cardLastFourField) {
+        [self stateCardNumber];
+        return NO;
+    }
+    return YES;
+}
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField
 {
