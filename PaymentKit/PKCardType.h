@@ -9,7 +9,7 @@
 #ifndef PKCardType_h
 #define PKCardType_h
 
-typedef enum {
+typedef NS_ENUM(NSInteger, PKCardType) {
     PKCardTypeVisa,
     PKCardTypeMasterCard,
     PKCardTypeAmex,
@@ -17,6 +17,6 @@ typedef enum {
     PKCardTypeJCB,
     PKCardTypeDinersClub,
     PKCardTypeUnknown
-} PKCardType;
+};
 
 #endif
